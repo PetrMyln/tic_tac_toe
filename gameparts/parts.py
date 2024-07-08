@@ -36,6 +36,7 @@ class Board:
             return True
         return False
 
+
     def __str__(self) -> str: 
         return (
             'Объект игрового поля размером'

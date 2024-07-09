@@ -1,87 +1,154 @@
+# game.py
+
+import pygame
+
+# Здесь нужно импортировать класс Board. Импорт исключений для игры
+# с графическим интерфейсом не понадобится.
 from gameparts import Board
-# Из файла exception.py, который лежит в gameparts,
-# импортируем класс FieldIndexError
-from gameparts.exceptions import CellOccupiedError, FieldIndexError
+
+pygame.init()
+
+# Здесь определены разные константы, например
+# размер ячейки и доски, цвет и толщина линий.
+# Эти константы используются при отрисовке графики.
+CELL_SIZE = 100
+BOARD_SIZE = 3
+WIDTH = HEIGHT = CELL_SIZE * BOARD_SIZE
+LINE_WIDTH = 15
+BG_COLOR = (28, 170, 156)
+LINE_COLOR = (23, 145, 135)
+X_COLOR = (84, 84, 84)
+O_COLOR = (242, 235, 211)
+X_WIDTH = 15
+O_WIDTH = 15
+SPACE = CELL_SIZE // 4
+
+# Настройка экрана.
+# Задать размер графического окна для игрового поля.
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# Установить заголовок окна.
+pygame.display.set_caption('Крестики-нолики')
+# Заполнить фон окна заданным цветом.
+screen.fill(BG_COLOR)
 
 
+# Функция, которая отвечает за отрисовку горизонтальных и вертикальных линий.
+def draw_lines():
+    # Горизонтальные линии.
+    for i in range(1, BOARD_SIZE):
+        pygame.draw.line(
+            screen,
+            LINE_COLOR,
+            (0, i * CELL_SIZE),
+            (WIDTH, i * CELL_SIZE),
+            LINE_WIDTH
+        )
+
+    # Вертикальные линии.
+    for i in range(1, BOARD_SIZE):
+        pygame.draw.line(
+            screen,
+            LINE_COLOR,
+            (i * CELL_SIZE, 0),
+            (i * CELL_SIZE, HEIGHT),
+            LINE_WIDTH
+        )
+
+# Функция, которая отвечает за отрисовку фигур
+# (крестиков и ноликов) на доске.
+
+
+def draw_figures(board):
+    for row in range(BOARD_SIZE):
+        for col in range(BOARD_SIZE):
+            if board[row][col] == 'X':
+                pygame.draw.line(
+                    screen,
+                    X_COLOR,
+                    (col * CELL_SIZE + SPACE, row * CELL_SIZE + SPACE),
+                    (
+                        col * CELL_SIZE + CELL_SIZE - SPACE,
+                        row * CELL_SIZE + CELL_SIZE - SPACE
+                    ),
+                    X_WIDTH
+                )
+                pygame.draw.line(
+                    screen,
+                    X_COLOR,
+                    (
+                        col * CELL_SIZE + SPACE,
+                        row * CELL_SIZE + CELL_SIZE - SPACE
+                    ),
+                    (
+                        col * CELL_SIZE + CELL_SIZE - SPACE,
+                        row * CELL_SIZE + SPACE
+                    ),
+                    X_WIDTH
+                )
+            elif board[row][col] == 'O':
+                pygame.draw.circle(
+                    screen,
+                    O_COLOR,
+                    (
+                        col * CELL_SIZE + CELL_SIZE // 2,
+                        row * CELL_SIZE + CELL_SIZE // 2
+                    ),
+                    CELL_SIZE // 2 - SPACE,
+                    O_WIDTH
+                )
+
+
+# Сюда нужно добавить функцию save_result().
 def save_result(string):
-    file = open('results.txt', 'a', encoding='utf-8')
-    file.write(f'{string}')
-    file.close
+    with open('results.txt', 'a', encoding='utf-8') as file:
+        file.write(f'{string}')
 
 
+# В этой функции описана логика игры. Вам нужно её дополнить. По структуре
+# тут всё то же самое, что было в вашем коде раньше.
+# Но есть отличие - вместо метода display() используется
+# новая функция draw_figures().
 def main():
     game = Board()
     current_player = 'X'
-    game.display()
-    # первым ходят крестики
-    # Это флаговая переменная. ПО умолчанию игра запущена и продолжается.
     running = True
-    game.display()
-
-    # тут запускается основной цикл игры.
+    draw_lines()
+    # В цикле обрабатываются такие события, как
+    # нажатие кнопок мыши и закрытие окна.
     while running:
-        print(f'Ход делает {current_player}')
-        # Запускается бесконечный цикл
-        while True:
-            # в этом блоке содержатся операции, которые могут
-            # вызвать исключения.
-            try:
-                row = int(input('Введите номер строки: '))
-        # Если введеное значение меньше нуля или больше иди равно
-        # field_size (это значение равно трём, оно хранится в модуле
-        # parts.py)...
-                if row < 0 or row >= game.field_size:
-                    # ... выбросить исключение FieldIndexError
-                    raise FieldIndexError
-                column = int(input('Введите номер столбца: '))
-                if column < 0 or column >= game.field_size:
-                    # ... выбросить исключение FieldIndexError
-                    raise FieldIndexError
-                if game.board[row][column] != ' ':
-                    raise ConnectionError(
-                        'Ячейка занята.'
-                        ' Введите другие координаты.'
-                    )
-            except FieldIndexError:
-                # ...выводятся сообщения...
-                print(
-                    'Значение должно быть неотрицательным и меньше '
-                    f'{game.field_size}'
-                )
-                print(
-                    'Пожалуйста, введите значение'
-                    ' для строки и столбца заново.'
-                )
-                continue
-            except ValueError:
-                # ...выводятся сообщения...
-                print('Буквы вводить нельзя. Только числа.')
-                print('Пожалуйста, введите значение'
-                      ' для строки и столбца заново.')
-                continue
-            except CellOccupiedError:
-                print('Ячейка занята')
-                print('Введите значения для строки и столбца заново.')
-            except Exception as e:
-                print(f'Возникла ошибка: {e}')
-                continue
-            else:
-                break
-        game.make_move(row, column, current_player)
-        game.display()
-        if game.check_win(current_player):
-            string = f'Победили {current_player}\n'
-            save_result(string)
-            print(f'Победили {current_player}')
-            running = False
-        elif game.is_board_full():   
-            print('Ничья')
-            string = 'Ничья\n'
-            save_result(string)
-            running = False
-        current_player = 'O' if current_player == 'X' else 'X'
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_y = event.pos[0]
+                mouse_x = event.pos[1]
+
+                clicked_row = mouse_x // CELL_SIZE
+                clicked_col = mouse_y // CELL_SIZE
+                if game.board[clicked_row][clicked_col] == ' ':
+                    game.make_move(clicked_row, clicked_col, current_player)
+
+                    if game.check_win(current_player):
+                        result = f'Победили {current_player}.'
+                        print(result)
+                        save_result(result)
+                        running = False
+                    elif game.is_board_full():
+                        result = 'Ничья!'
+                        print(result)
+                        save_result(result)
+                        running = False
+
+                current_player = 'O' if current_player == 'X' else 'X'
+                draw_figures(game.board)
+        # Обновить окно игры.
+        pygame.display.update()
+    # Деинициализирует все модули pygame, которые были инициализированы ранее.
+    pygame.quit()
 
 
 if __name__ == '__main__':
     main()
+
